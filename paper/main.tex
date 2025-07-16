@@ -1,0 +1,547 @@
+% Use only LaTeX2e, calling the article.cls class and 12-point type.
+
+\documentclass[12pt]{article}
+
+% Users of the {thebibliography} environment or BibTeX should use the
+% scicite.sty package, downloadable from *Science* at
+% www.sciencemag.org/about/authors/prep/TeX_help/ .
+% This package should properly format in-text
+% reference calls and reference-list numbers.
+
+%\usepackage{scicite}
+\usepackage[numbers, square, sort, compress]{natbib}
+\usepackage{amsfonts} 
+\usepackage{hyperref}
+
+% Use times if you have the font installed; otherwise, comment out the
+% following line.
+
+\usepackage{times}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[left]{lineno}
+\usepackage{awesomebox}
+\linenumbers
+% The preamble here sets up a lot of new/revised commands and
+% environments.  It's annoying, but please do *not* try to strip these
+% out into a separate .sty file (which could lead to the loss of some
+% information when we convert the file to other formats).  Instead, keep
+% them in the preamble of your main LaTeX source file.
+
+
+% The following parameters seem to provide a reasonable page setup.
+
+\topmargin 0.0cm
+\oddsidemargin 0.2cm
+\textwidth 16cm 
+\textheight 21cm
+\footskip 1.0cm
+
+
+
+% If your reference list includes text notes as well as references,
+% include the following line; otherwise, comment it out.
+
+\renewcommand\refname{References and Notes}
+
+% The following lines set up an environment for the last note in the
+% reference list, which commonly includes acknowledgments of funding,
+% help, etc.  It's intended for users of BibTeX or the {thebibliography}
+% environment.  Users who are hand-coding their references at the end
+% using a list environment such as {enumerate} can simply add another
+% item at the end, and it will be numbered automatically.
+
+\newcounter{lastnote}
+\newenvironment{scilastnote}{%
+\setcounter{lastnote}{\value{enumiv}}%
+\addtocounter{lastnote}{+1}%
+\begin{list}
+{\arabic{lastnote}.}
+{\setlength{\leftmargin}{.22in}}
+{\setlength{\labelsep}{.5em}}}
+{\end{list}}
+
+
+% Include your paper's title here
+
+\title{Archetypes for networks} 
+
+
+% Place the author information here.  Please hand-code the contact
+% information and notecalls; do *not* use \footnote commands.  Let the
+% author contact information appear immediately below the author names
+% as shown.  We would also prefer that you don't change the type-size
+% settings shown here.
+
+\author
+{Lucy L. W. Owen$^{1}$\\
+\\
+\normalsize{$^{1}$Department of Computer Science,
+  University of Montana,}\\
+\normalsize{Missoula, MT, 59804, USA}
+}
+
+
+
+% Include the date command, but leave its argument blank.
+
+\date{}
+
+
+
+%%%%%%%%%%%%%%%%% END OF PREAMBLE %%%%%%%%%%%%%%%%
+
+
+\begin{document} 
+
+% Double-space the manuscript.
+
+\baselineskip24pt
+
+% Make the title.
+
+\maketitle 
+
+\begin{abstract}
+Why Archetypes can be interesting in decomposing brain data.  Try it.\\
+
+\small{\textbf{Keywords: Archetypal analysis, fMRI, decomposition, brain states}}
+\end{abstract}
+
+% \notebox{Dimensionality reduction and matrix decomposition techniques are widely used in neuroimaging to extract interpretable components from high-dimensional fMRI data. Among the most commonly used methods are Principal Component Analysis (PCA), Independent Component Analysis (ICA), and Archetypal Analysis (AA), each of which imposes distinct mathematical constraints and yields qualitatively different solutions.
+
+% PCA is a linear decomposition technique that identifies orthogonal components that maximize the variance explained in the data. Each principal component is a weighted combination of the original variables, and components are ordered by the amount of variance they capture. Because PCA assumes that the directions of maximal variance are the most meaningful, the resulting components often reflect global signal structure or dominant noise sources. Importantly, PCA imposes no constraints on the sign or sparsity of components, and the basis vectors are not typically interpretable as distinct brain states.
+
+% ICA, in contrast, seeks statistically independent components rather than merely uncorrelated ones. This makes it particularly useful in fMRI for separating signal from structured noise or overlapping brain networks. ICA assumes that the observed data are linear mixtures of latent sources that are maximally non-Gaussian and mutually independent. This assumption allows ICA to disentangle spatially or temporally overlapping processes, but the components are still unconstrained in sign or magnitude, and the method is sensitive to preprocessing steps such as whitening and dimension reduction.
+
+% Archetypal Analysis (AA) represents a conceptually distinct alternative. Rather than modeling variance or independence, AA seeks a set of extremal points—archetypes—that lie on the convex hull of the data. Each data point is then represented as a convex combination of these archetypes, meaning the resulting components are interpretable as prototypical patterns observed in the dataset. Archetypes are constrained to be mixtures of actual data, and all weights are non-negative and sum to one. This yields interpretable, sparse representations, where each observation is expressed in terms of a few representative patterns. Unlike PCA and ICA, which allow components to extend beyond the observed data space, AA restricts the solution to remain within the convex boundaries of the input, making it well-suited for discovering interpretable structure in complex brain data.
+
+% Together, these three methods offer complementary views of the data: PCA emphasizes variance, ICA emphasizes independence, and AA emphasizes extremality and interpretability through convex structure.}
+
+
+
+
+
+\section*{Introduction}
+Understanding how brain networks dynamically reconfigure during cognitive tasks is a central challenge in systems neuroscience. Functional MRI (fMRI) allows researchers to track large-scale network activity, and recent advances in time-resolved analysis have highlighted the importance of transient and recurring patterns of functional connectivity. While approaches like sliding-window correlation, hidden Markov models (HMM), and dynamic mode decomposition have been widely used to characterize these time-varying brain states (Allen et al., 2014; Vidaurre et al., 2017), archetypal analysis (AA) offers a complementary, interpretable framework for uncovering the most distinctive patterns of brain activity.
+
+Originally introduced by Cutler and Breiman (1994), AA is a convex matrix factorization method that identifies "archetypes"—extreme points on the convex hull of a dataset—such that each observation is represented as a convex combination of these archetypes. In the context of fMRI, these archetypes can represent canonical, high-salience network configurations that recur across time and subjects. Unlike clustering, which assigns each time point to a single state, AA allows each time point to be described as a weighted mixture of archetypes, better capturing the graded and overlapping nature of cognitive brain states.
+
+When applied to multi-subject task fMRI datasets, archetypal analysis can identify patterns of brain activity that generalize across individuals while still preserving within-subject temporal dynamics. For example, in studies of narrative comprehension or attention-switching tasks, AA can reveal distinct modes of network coactivation—such as dominance of the default mode network (DMN) during internally directed thought or engagement of the frontoparietal and dorsal attention networks during cognitively demanding segments. This approach aligns with findings from dynamic connectivity studies showing that task engagement is marked by fluid reconfiguration among large-scale networks (Shine et al., 2016; Gonzalez-Castillo et al., 2015).
+
+The advantage of archetypal analysis lies in its ability to simultaneously emphasize extremal, interpretable states and to track their temporal expression at fine resolution. By decomposing each subject’s time series into archetype expression weights, researchers can quantify how specific network configurations are recruited during task epochs, transitions, or cognitive shifts. Group-level archetypes derived across multiple subjects provide a compact representation of shared network reconfiguration patterns, while individual-level deviations in archetypal expression can reveal trait- or performance-related differences in network flexibility.
+
+\notebox{Dimensionality reduction techniques such as Principal Component Analysis (PCA) and Independent Component Analysis (ICA) are commonly used to uncover structure in high-dimensional fMRI data, but they differ fundamentally in their assumptions and outputs. PCA identifies orthogonal components that maximize variance, producing uncorrelated but often difficult-to-interpret patterns that may reflect both neural and noise-driven signal. ICA goes further by seeking statistically independent components, making it particularly useful for separating overlapping brain networks or isolating artifacts. However, both PCA and ICA allow components to extend beyond the convex space of the data, and impose no constraints on sign or sparsity. Archetypal Analysis (AA), by contrast, seeks a set of extremal patterns—archetypes—that lie on the convex hull of the data. Each observation is represented as a convex combination of these archetypes, yielding interpretable, sparse representations grounded in observed brain states. While PCA emphasizes variance and ICA emphasizes independence, AA emphasizes interpretability through extremality and convexity, making it especially well-suited for uncovering prototypical patterns of brain activity.}
+
+
+
+% Allen, E. A., Damaraju, E., Plis, S. M., Erhardt, E. B., Eichele, T., & Calhoun, V. D. (2014). Tracking whole-brain connectivity dynamics in the resting state. Cerebral Cortex, 24(3), 663–676. https://doi.org/10.1093/cercor/bhs352
+
+% Cutler, A., & Breiman, L. (1994). Archetypal analysis. Technometrics, 36(4), 338–347. https://doi.org/10.2307/1269949
+
+% Gonzalez-Castillo, J., Hoy, C. W., Handwerker, D. A., Robinson, M. E., Buchanan, L. C., Saad, Z. S., & Bandettini, P. A. (2015). Tracking ongoing cognition in individuals using brief, whole-brain functional connectivity patterns. Proceedings of the National Academy of Sciences, 112(28), 8762–8767. https://doi.org/10.1073/pnas.1501242112
+
+% Shine, J. M., Koyejo, O., Bell, P. T., Gorgolewski, K. J., Gilat, M., & Poldrack, R. A. (2016). Estimation of dynamic functional connectivity using Multiplication of Temporal Derivatives. NeuroImage, 122, 399–407. https://doi.org/10.1016/j.neuroimage.2015.07.064
+
+% Vidaurre, D., Smith, S. M., & Woolrich, M. W. (2017). Brain network dynamics are hierarchically organized in time. Proceedings of the National Academy of Sciences, 114(48), 12827–12832. https://doi.org/10.1073/pnas.1705120114
+
+\section*{Methods}
+
+
+\subsection*{Participants and Task}
+take all from timecorr and/or pca paper
+
+\subsection*{Data Acquisition and Preprocessing}
+also take
+
+\subsection*{Archetypal Analysis}
+
+Archetypal analysis (AA) is a matrix factorization technique that identifies a set of extremal patterns—called archetypes—that represent convex combinations of the observed data. In the context of fMRI, each timepoint in a parcellated dataset is treated as a high-dimensional observation vector of regional BOLD activity. Let $\mathbf{X} \in \mathbb{R}^{T \times P}$ be the matrix of fMRI data, where $T$ is the number of timepoints and $P$ is the number of brain parcels.
+
+AA approximates each observation as a convex combination of $K$ archetypes, represented by the matrix $\mathbf{Z} \in \mathbb{R}^{K \times P}$, such that:
+
+\[
+\mathbf{X} \approx \mathbf{A} \mathbf{Z}
+\]
+
+where $\mathbf{A} \in \mathbb{R}^{T \times K}$ contains the archetype expression weights for each timepoint. Each row $\mathbf{a}_t$ of $\mathbf{A}$ satisfies the convexity constraint:
+
+\[
+a_{tk} \geq 0, \quad \sum_{k=1}^{K} a_{tk} = 1 \quad \forall t
+\]
+
+Each archetype $\mathbf{z}_k$ is itself a convex combination of the data:
+
+\[
+\mathbf{Z} = \mathbf{B} \mathbf{X}
+\]
+
+with $\mathbf{B} \in \mathbb{R}^{K \times T}$ satisfying:
+
+\[
+b_{kt} \geq 0, \quad \sum_{t=1}^{T} b_{kt} = 1 \quad \forall k
+\]
+
+The full factorization is therefore:
+
+\[
+\mathbf{X} \approx \mathbf{A} \mathbf{B} \mathbf{X}
+\]
+
+The number of archetypes $K$ was selected using a cross-validated elbow criterion on reconstruction error and the stability of archetypes across folds. Archetypes were interpreted as spatial brain states, and the corresponding expression weights $\mathbf{A}$ were analyzed over time to capture dynamic reconfiguration patterns.
+
+Prior to AA, each subject’s data were z-scored and concatenated across subjects to form the group matrix $\mathbf{X}$. The AA algorithm was implemented using an active set optimization procedure that alternates updates of $\mathbf{A}$ and $\mathbf{B}$ under the simplex constraints. Archetypal decomposition was performed using a custom Python implementation adapted from the original method proposed by Cutler and Breiman (1994).
+
+% \subsection*{Archetypal Analysis: Temporal and Node-Based Formulations}
+
+% We employed archetypal analysis (AA) to decompose fMRI data into a set of extremal patterns, providing interpretable summaries of functional brain organization. AA identifies a set of archetypes that form the vertices of the convex hull surrounding the data and expresses each observation as a convex combination of these archetypes. Here, we describe two complementary formulations of AA: one applied across timepoints (temporal archetypes), and the other across brain regions (node archetypes).
+
+% \subsubsection*{Timepoint-Based Archetypal Analysis (Temporal Archetypes)}
+
+% In the temporal archetype formulation, we constructed a data matrix $\mathbf{X}_{\text{time}} \in \mathbb{R}^{T \times P}$, where each row corresponds to the brain-wide activation pattern at a single timepoint. Here, $T$ is the total number of timepoints across all subjects, and $P$ is the number of parcellated brain regions.
+
+% We decomposed this matrix as:
+% \[
+% \mathbf{X}_{\text{time}} \approx \mathbf{A} \mathbf{Z}
+% \]
+% where $\mathbf{Z} \in \mathbb{R}^{K \times P}$ contains $K$ spatial archetypes (i.e., prototypical brain states), and $\mathbf{A} \in \mathbb{R}^{T \times K}$ contains the time-resolved expression weights. Each row of $\mathbf{A}$ lies on the $K$-simplex:
+% \[
+% \forall t: \quad \mathbf{a}_t \in \Delta_K = \left\{ \mathbf{a} \in \mathbb{R}^K : a_k \geq 0, \sum_{k=1}^{K} a_k = 1 \right\}
+% \]
+% This formulation allows us to track how archetypal spatial configurations are dynamically expressed throughout task and rest periods. Importantly, the archetypes themselves were derived from a group-level concatenation of subject data:
+% \[
+% \mathbf{X}_{\text{group}} = \begin{bmatrix}
+% \mathbf{X}^{(1)} \\
+% \mathbf{X}^{(2)} \\
+% \vdots \\
+% \mathbf{X}^{(S)}
+% \end{bmatrix}, \quad \text{with } \mathbf{X}^{(s)} \in \mathbb{R}^{T_s \times P}
+% \]
+% where $S$ is the number of subjects and $T_s$ is the number of timepoints for subject $s$. The resulting archetypes were interpreted as canonical brain states shared across participants, and subject-specific temporal profiles were extracted by segmenting $\mathbf{A}$ according to individual contributions.
+
+% \subsubsection*{Node-Based Archetypal Analysis (Temporal Profile Archetypes)}
+
+% In the node-based formulation, we transposed the data to form $\mathbf{X}_{\text{node}} \in \mathbb{R}^{P \times T}$, where each row corresponds to the time series of a single brain region across all timepoints. This allows us to characterize the dominant temporal dynamics expressed across parcels.
+
+% We performed AA as:
+% \[
+% \mathbf{X}_{\text{node}} \approx \mathbf{W} \mathbf{Z}
+% \]
+% where $\mathbf{Z} \in \mathbb{R}^{K \times T}$ represents $K$ archetypal timecourses, and $\mathbf{W} \in \mathbb{R}^{P \times K}$ contains non-negative convex weights for each parcel. Each row $\mathbf{w}_p$ satisfies:
+% \[
+% \mathbf{w}_p \in \Delta_K = \left\{ \mathbf{w} \in \mathbb{R}^K : w_k \geq 0, \sum_{k=1}^K w_k = 1 \right\}
+% \]
+% This approach highlights which brain regions express similar temporal dynamics, and is particularly suited to identifying spatial clusters of nodes that respond to the task in temporally coherent ways. Archetypal timecourses $\mathbf{Z}$ can also be directly compared to task regressors, stimuli, or block structures to examine task-locked modulation of specific components.
+
+
+
+
+
+\subsection*{Alternative Formulations of Archetypal Analysis}
+
+There are two complementary ways to apply archetypal analysis (AA) to multi-subject fMRI data, each emphasizing different organizational levels of brain activity. The first approach focuses on identifying spatial patterns of activity that recur over time—what we refer to as \textit{temporal archetypes}. The second approach instead identifies dominant temporal profiles expressed across different brain regions—referred to as \textit{node archetypes}. Both methods rely on convex decomposition but differ in how the data matrix is constructed and interpreted.
+
+In the temporal archetype formulation, the data matrix $\mathbf{X}_{\text{time}} \in \mathbb{R}^{T \times P}$ is constructed such that each row represents the brain-wide activity pattern at a single timepoint, where $T$ is the number of timepoints and $P$ is the number of brain parcels or nodes. Archetypal analysis then decomposes $\mathbf{X}_{\text{time}}$ into a set of $K$ spatial archetypes $\mathbf{Z} \in \mathbb{R}^{K \times P}$ and an expression matrix $\mathbf{A} \in \mathbb{R}^{T \times K}$ such that:
+\[
+\mathbf{X}_{\text{time}} \approx \mathbf{A} \mathbf{Z}
+\]
+Each archetype $\mathbf{z}_k$ captures an extremal brain network configuration, and the rows of $\mathbf{A}$ reflect the relative expression of each archetype over time. This method is particularly well-suited to investigating how large-scale functional networks reconfigure during task performance and how task demands modulate expression of spatial brain states across individuals.
+
+In contrast, the node archetype formulation begins with the transposed data matrix $\mathbf{X}_{\text{node}} \in \mathbb{R}^{P \times T}$, where each row now corresponds to the time series of a single brain region. Archetypal analysis is then used to identify $K$ archetypal timecourses $\mathbf{Z} \in \mathbb{R}^{K \times T}$, such that:
+\[
+\mathbf{X}_{\text{node}} \approx \mathbf{W} \mathbf{Z}
+\]
+with $\mathbf{W} \in \mathbb{R}^{P \times K}$ denoting the convex weights used to reconstruct each node’s activity profile. In this case, the archetypes reflect dominant temporal dynamics—e.g., stimulus-locked, oscillatory, or state-transition patterns—while the weights $\mathbf{w}_p$ describe how strongly each parcel expresses those dynamics. This formulation is well-suited for understanding which brain regions contribute to particular temporal features of cognition and how regional dynamics vary across individuals or tasks.
+
+Both approaches offer valuable, complementary insights: the first emphasizes when distinct spatial configurations are expressed, and the second emphasizes which regions participate in shared temporal patterns. Together, they provide a flexible framework for interrogating both the spatial and temporal complexity of brain network reconfiguration.
+
+\subsubsection*{Comparative Utility}
+
+Together, these two approaches provide a multi-perspective view of brain dynamics. Temporal archetypes characterize when distinct network states are expressed, while node archetypes reveal which brain regions participate in specific temporal patterns. Both formulations leverage the convex geometry of the data to yield interpretable, biologically grounded decompositions of large-scale functional dynamics.
+
+\begin{table}[h!]
+\centering
+\caption{Comparison of timepoint-based and node-based archetypal analysis formulations}
+\begin{tabular}{|p{4cm}|p{5.5cm}|p{5.5cm}|}
+\hline
+\textbf{Feature} & \textbf{Temporal Archetypes} & \textbf{Node Archetypes} \\
+\hline
+\textbf{Input matrix} & $\mathbf{X}_{\text{time}} \in \mathbb{R}^{T \times P}$ (timepoints × parcels) & $\mathbf{X}_{\text{node}} \in \mathbb{R}^{P \times T}$ (parcels × timepoints) \\
+\hline
+\textbf{Archetypes} & Spatial brain states (networks) & Temporal patterns (e.g., task-locked dynamics) \\
+\hline
+\textbf{Interpretation} & When distinct network configurations are expressed & Which regions follow which temporal profiles \\
+\hline
+\textbf{Best suited for} & Network reconfiguration, state transitions, task modulation & Region-wise functional clustering, response types \\
+\hline
+\textbf{Output weights} & $\mathbf{A} \in \mathbb{R}^{T \times K}$ (expression over time) & $\mathbf{W} \in \mathbb{R}^{P \times K}$ (expression across space) \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+% \subsection*{Time-resolved expression profiles}
+
+% The archetype expression weights (rows of matrix
+% A) were used to generate time-resolved profiles of each archetype’s contribution across the fMRI run. These expression profiles were z-scored within subjects for normalization. 
+
+
+
+
+% \subsection*{Archetypal Analysis and Group-Level Modeling}
+
+% We used archetypal analysis (AA) to uncover interpretable, extremal network configurations shared across subjects. Let $S$ be the number of subjects, and let $\mathbf{X}^{(s)} \in \mathbb{R}^{T_s \times P}$ denote the fMRI time series for subject $s$, where $T_s$ is the number of timepoints and $P$ is the number of parcellated brain regions. Prior to analysis, each subject's data were z-scored across time and temporally masked to exclude high-motion frames.
+
+% All subjects' data were concatenated to form a group data matrix:
+
+% \[
+% \mathbf{X}_{\text{group}} = \begin{bmatrix}
+% \mathbf{X}^{(1)} \\
+% \mathbf{X}^{(2)} \\
+% \vdots \\
+% \mathbf{X}^{(S)}
+% \end{bmatrix} \in \mathbb{R}^{T \times P}, \quad \text{where } T = \sum_{s=1}^{S} T_s
+% \]
+
+% We performed archetypal decomposition on $\mathbf{X}_{\text{group}}$ to derive $K$ archetypes $\mathbf{Z} \in \mathbb{R}^{K \times P}$ and corresponding expression weights $\mathbf{A} \in \mathbb{R}^{T \times K}$, such that:
+
+% \[
+% \mathbf{X}_{\text{group}} \approx \mathbf{A} \mathbf{Z}, \quad \text{with } \mathbf{Z} = \mathbf{B} \mathbf{X}_{\text{group}}
+% \]
+
+% The rows of $\mathbf{A}$ are constrained to lie on the $K$-simplex:
+
+% \[
+% \forall t: \quad \mathbf{a}_t \in \Delta_K = \left\{ \mathbf{a} \in \mathbb{R}^K \,:\, a_k \geq 0, \sum_{k=1}^K a_k = 1 \right\}
+% \]
+
+% Each archetype $\mathbf{z}_k$ is itself a convex combination of the original data, via the matrix $\mathbf{B} \in \mathbb{R}^{K \times T}$:
+
+% \[
+% \forall k: \quad \mathbf{z}_k = \sum_{t=1}^{T} b_{kt} \mathbf{x}_t, \quad \text{with } \mathbf{b}_k \in \Delta_T
+% \]
+
+% This formulation yields archetypes that reflect the most "extreme" configurations of brain activity in the dataset, while preserving the non-negativity and interpretability of the decomposition.
+
+% \subsection*{Subject-Specific Time Courses}
+
+% To recover subject-specific dynamics, the matrix $\mathbf{A}$ was partitioned into blocks corresponding to each subject’s timepoints:
+
+% \[
+% \mathbf{A} = \begin{bmatrix}
+% \mathbf{A}^{(1)} \\
+% \mathbf{A}^{(2)} \\
+% \vdots \\
+% \mathbf{A}^{(S)}
+% \end{bmatrix}, \quad \mathbf{A}^{(s)} \in \mathbb{R}^{T_s \times K}
+% \]
+
+% Each row of $\mathbf{A}^{(s)}$ represents the archetype mixture at a given timepoint in subject $s$, effectively yielding a time-resolved expression profile for each archetype.
+
+% \subsection*{Task-Dependent Modulation Across Heterogeneous Designs}
+
+% Since participants did not perform the same task paradigm, task modulation was modeled using individualized event vectors. Let $\mathbf{h}^{(s)}(t)$ be a binary vector (or continuous regressor) indicating the presence of a task condition of interest for subject $s$ at time $t$. For example, $\mathbf{h}^{(s)}$ could denote high vs. low cognitive load, narrative coherence, or any design-specific contrast.
+
+% To test for task modulation of archetypes, we performed within-subject regression:
+
+% \[
+% \mathbf{A}^{(s)} = \mathbf{H}^{(s)} \mathbf{W}^{(s)} + \boldsymbol{\varepsilon}^{(s)}, \quad \mathbf{H}^{(s)} \in \mathbb{R}^{T_s \times Q}
+% \]
+
+% where $\mathbf{H}^{(s)}$ is the design matrix for subject $s$ with $Q$ regressors, and $\mathbf{W}^{(s)} \in \mathbb{R}^{Q \times K}$ contains beta weights capturing how task conditions modulate archetype expression. This model was fit using ordinary least squares for each subject independently.
+
+% To examine consistency across subjects with non-identical designs, we tested for effects at the group level using mixed-effects models:
+
+% \[
+% w_{qk}^{(s)} = \mu_{qk} + \eta^{(s)}_{qk}
+% \]
+
+% where $\mu_{qk}$ is the fixed effect of regressor $q$ on archetype $k$, and $\eta^{(s)}_{qk}$ is a random subject effect. Inference was conducted on $\mu_{qk}$ using a hierarchical linear model or nonparametric permutation testing.
+
+% \subsection*{Archetype–Network Correspondence}
+
+% To interpret the spatial structure of each archetype, we computed Pearson correlations between each row $\mathbf{z}_k$ and the spatial templates of canonical resting-state networks (RSNs) derived from the Yeo 7-network atlas. Archetypes were labeled by their highest-correlated network, allowing interpretability in terms of known functional systems.
+
+
+
+\section*{Multi-Subject Archetypal Analysis with Variance-Weighted Optimization}
+
+Archetypal Analysis (AA) \citep{CutlEtal94} is a matrix factorization method that represents data points as convex combinations of extremal points called \emph{archetypes}. Unlike PCA or ICA, archetypes lie on the convex hull of the data and can be interpreted as prototypical examples within the dataset. 
+
+In the multi-subject setting, we analyze data from multiple subjects simultaneously to learn shared archetypes while capturing individual variability. The observed data is a collection of matrices $\{ \mathbf{X}_s \}_{s=1}^S$, where each subject $s$ has data $\mathbf{X}_s \in \mathbb{R}^{m \times n}$ with $m$ features and $n$ time points (or vice versa, depending on mode).
+
+\subsubsection*{Model Formulation}
+
+We seek a set of archetypes $\mathbf{Z} \in \mathbb{R}^{m \times k}$ and subject-specific mixing coefficients $\mathbf{A}_s \in \mathbb{R}^{k \times n}$ such that each subject's data is approximated by:
+\[
+\mathbf{X}_s \approx \mathbf{Z} \mathbf{A}_s,
+\]
+where $k$ is the number of archetypes, typically $k \ll \min(m, n)$. 
+
+Each archetype is itself a convex combination of data points:
+\[
+\mathbf{Z} = \mathbf{X} \mathbf{B},
+\]
+with $\mathbf{B} \in \mathbb{R}^{n \times k}$, where $\mathbf{X}$ is the concatenation of all subjects' data along the relevant axis (features or time). The columns of $\mathbf{B}$ lie on the simplex, enforcing convexity.
+
+\subsubsection*{Optimization Objective}
+
+The goal is to minimize the reconstruction error across all subjects:
+\[
+\min_{\mathbf{A}_s, \mathbf{B}} \sum_{s=1}^S \left\| \mathbf{X}_s - \mathbf{X} \mathbf{B} \mathbf{A}_s \right\|_F^2,
+\]
+subject to convexity constraints on $\mathbf{A}_s$ and $\mathbf{B}$ (i.e., non-negativity and columns summing to one).
+
+\subsubsection*{Variance-Weighted Optimization}
+
+In practice, different subjects or features may exhibit heterogeneous noise levels. To account for this, we estimate a subject-specific noise variance vector $\boldsymbol{\sigma}_s \in \mathbb{R}^m$ from the residuals after initial archetype estimation:
+\[
+\boldsymbol{\sigma}_s = \mathrm{Var}\big( \mathbf{X}_s - \mathbf{Z} \mathbf{A}_s, \text{axis}=1 \big) + \epsilon,
+\]
+where $\epsilon$ is a small constant for numerical stability.
+
+These variances are inverted to produce weights $\mathbf{w}_s = 1/\boldsymbol{\sigma}_s$ that downweight noisy features during optimization.
+
+The weighted reconstruction error becomes:
+\[
+\min_{\mathbf{A}_s, \mathbf{B}} \sum_{s=1}^S \left\| \mathbf{W}_s^{1/2} \left(\mathbf{X}_s - \mathbf{X} \mathbf{B} \mathbf{A}_s\right) \right\|_F^2,
+\]
+where $\mathbf{W}_s = \mathrm{diag}(\mathbf{w}_s)$ is a diagonal matrix of weights.
+
+\subsubsection*{Algorithmic Details}
+
+The optimization alternates between updating the coefficient matrices $\mathbf{A}_s$ and archetype coefficient matrix $\mathbf{B}$ using projected gradient descent with step sizes decreasing as $\frac{2}{t+2}$ per iteration $t$ (following \citealp{BaucEtal15}). The updates incorporate weights by modifying gradient computations:
+
+\begin{align*}
+\mathbf{A}_s^{(t+1)} &= \mathbf{A}_s^{(t)} + \frac{2}{t+2} \left( \mathbf{E}_A - \mathbf{A}_s^{(t)} \right), \\
+\mathbf{B}^{(t+1)} &= \mathbf{B}^{(t)} + \frac{2}{t+2} \left( \mathbf{E}_B - \mathbf{B}^{(t)} \right),
+\end{align*}
+where $\mathbf{E}_A$ and $\mathbf{E}_B$ are indicator matrices selecting minimal gradient entries weighted by $\mathbf{W}_s$.
+
+\subsubsection*{Initialization via FurthestSum}
+
+Good initialization is crucial due to the non-convex nature of AA. We employ \emph{furthest sum} initialization \citep{CutlEtal94} to select initial archetypes by iteratively choosing data points maximally distant from previously chosen archetypes, improving convergence and final solution quality.
+
+\subsubsection*{Normalization}
+
+Before fitting, each subject's data matrix $\mathbf{X}_s$ is normalized feature-wise to zero mean and unit variance, ensuring balanced contributions during fitting.
+
+\subsubsection*{Comparison to Canonical Networks}
+To interpret the spatial configuration of each archetype, we compared them to canonical networks using spatial correlation with Yeo et al.’s 7-network parcellation. Archetypes were labeled based on their dominant network expression.
+
+
+\subsubsection*{Evaluation}
+
+Reconstruction quality is measured by the coefficient of determination ($R^2$) and reconstruction errors per subject:
+\[
+R^2_s = 1 - \frac{\sum_{i,j} \left(\mathbf{X}_{s,ij} - \hat{\mathbf{X}}_{s,ij}\right)^2}{\sum_{i,j} \left(\mathbf{X}_{s,ij} - \bar{\mathbf{X}}_{s,i}\right)^2},
+\]
+where $\hat{\mathbf{X}}_s = \mathbf{Z} \mathbf{A}_s$ is the reconstruction and $\bar{\mathbf{X}}_{s,i}$ is the mean of feature $i$ for subject $s$.
+
+This method enables robust multi-subject decomposition while accounting for subject- or feature-specific noise through variance-weighted optimization and improves archetype quality through intelligent initialization.
+
+% \subsection{References}
+
+% \begin{itemize}
+%   \item \textbf{Cutler \& Breiman (1994)}: Cutler, A., \& Breiman, L. (1994). Archetypal analysis. \emph{Technometrics}, 36(4), 338–347. \\
+%   Introduces archetypal analysis as a convex hull-based data decomposition method.
+  
+%   \item \textbf{Bauckhage et al. (2015)}: Bauckhage, C., Kersting, K., \& Hadiji, F. (2015). Archetypal analysis for machine learning and data mining. \emph{Pattern Recognition}, 48(7), 2325–2337. \\
+%   Presents an efficient autoencoder-based optimization scheme for archetypal analysis.
+% \end{itemize}
+
+% ---
+
+
+
+
+
+\section*{Results}
+
+\subsection*{Spatial Characteristics of Archetypes}
+
+% The five archetypes identified represented distinct spatial configurations of functional activity (Figure 1). Archetype 1 showed strong expression in the default mode network (DMN), while Archetype 2 was characterized by coactivation of dorsal attention and frontoparietal control regions. Archetype 3 resembled a sensory-motor configuration, and Archetype 4 included coactivation of visual and attention systems. Archetype 5 showed globally low activity, suggestive of a deactivated or transitional state.
+
+
+% Figure 1: Spatial maps of the five archetypes (A1–A5), thresholded at the 90th percentile. Overlap with canonical networks is shown below each archetype.
+
+\subsection*{Temporal Expression and Task Modulation}
+
+
+% Archetype expression profiles revealed dynamic shifts in network configuration across the task (Figure 2). Archetype 2 (control-attention) showed increased expression during high-demand task blocks, whereas Archetype 1 (DMN) peaked during rest and low-demand periods. Archetype 5 (global low-activity) was transiently expressed at block transitions, suggesting a reset or transition state.
+
+% Figure 2: Time-resolved expression profiles of the five archetypes in an example subject. Vertical lines denote block boundaries. Shaded areas represent task epochs.
+
+\subsection*{Group-Level Patterns of Network Reconfiguration}
+
+
+% Across subjects, we found consistent modulation of archetype expression by task condition (Figure 3). Expression of Archetype 2 increased significantly during cognitively demanding blocks (paired t(N–1) = 4.12, p < 0.001), while Archetype 1 was dominant during rest. Inter-subject variability in archetype usage was observed, suggesting individual differences in task strategy or network flexibility.
+
+% Figure 3: Group-level average archetype expression during task vs. rest periods. Error bars show ±1 SEM. Asterisks denote significant differences (FDR-corrected).
+
+\subsection*{Correspondence with Canonical Networks}
+
+% Spatial correlation analysis confirmed that the archetypes aligned with known resting-state networks (Figure 4). Archetypes 1 and 2 correlated strongly with the DMN and control networks respectively, supporting the interpretability of AA-derived states.
+
+% Figure 4: Spatial correlation between archetypes and Yeo 7-network RSNs. Each row shows one archetype, and each column represents a canonical network.
+
+% A notable exception, and one that other network analyses would miss, would be global negative states possibly related to transition. 
+
+
+\section*{Discussion}
+
+In this study, we applied archetypal analysis (AA) to multi-subject fMRI data to uncover extremal patterns of brain network activity and their expression over time. Archetypal analysis offers a principled and interpretable approach to understanding large-scale brain dynamics by identifying representative patterns—archetypes—that lie on the convex hull of the data. Each archetype reflects a prototypical spatial configuration or temporal profile, and each observation is expressed as a non-negative convex combination of these interpretable extremes. This contrasts with traditional decomposition methods such as PCA and ICA, which are based on maximizing variance or statistical independence, respectively, but do not constrain components to lie within the data space or to reflect actual brain states.
+
+The use of AA in a multi-subject framework allowed us to extract group-level archetypes that captured recurring network patterns across individuals, while preserving subject-specific temporal expression. These archetypes aligned with known functional networks, including default mode, frontoparietal control, and salience systems, and their dynamic expression revealed task-modulated reconfiguration. Importantly, because the method does not assume that all subjects experience the same cognitive events or stimuli, it is well suited for naturalistic paradigms, individualized task designs, or studies of inter-individual variability. By modeling each subject’s time course as a convex combination of shared archetypes, we gained access to interpretable dynamic profiles without requiring strict synchronization or condition averaging.
+
+Archetypal analysis also complements existing network detection approaches. While ICA is widely used for separating overlapping functional networks, it requires assumptions about statistical independence and often produces components that are difficult to interpret in terms of discrete cognitive states. In contrast, AA emphasizes interpretable boundaries of the data: archetypes are inherently sparse, often dominated by distinct subnetworks or combinations of canonical systems. This sparsity facilitates visualization and hypothesis generation, particularly when studying dynamic brain state transitions or atypical network engagement in clinical populations.
+
+
+Moreover, the convex formulation of AA naturally supports mixed-membership models of brain activity, wherein timepoints or regions express multiple networks to varying degrees. This flexibility aligns with contemporary views of network function as overlapping and dynamically co-active rather than strictly modular. The ability to detect and characterize these mixtures using archetypal decomposition makes the method particularly valuable for studies of flexible cognition, adaptive control, and complex naturalistic processing.
+
+This complements existing methods of dynamic functional connectivity by avoiding arbitrary windowing and by providing a low-dimensional embedding of the most salient spatial patterns. These archetypes can be compared to canonical resting-state networks or task activation maps, allowing for neurobiological interpretation. When integrated with behavioral or physiological data, this framework opens the door to testing how the flexible combination of archetypal brain states supports adaptive cognition under different task demands.
+
+
+In future work, AA could be extended to integrate multimodal data (e.g., behavior, physiology, or structural connectivity) or applied in a hierarchical fashion to identify subject-specific archetypes nested within group-level structure. Furthermore, leveraging recent advances in sparse and kernel-based AA may enable the modeling of non-linear dynamics or hierarchical brain state transitions with greater fidelity.
+
+Together, these findings demonstrate that archetypal analysis provides a powerful, interpretable, and biologically plausible tool for detecting and characterizing functional brain networks in multi-subject fMRI. Its ability to reveal extremal network states and their dynamic expression over time offers a novel perspective on brain organization that complements and extends existing methods.
+
+
+In summary, archetypal analysis provides a powerful framework for uncovering dynamic reconfiguration of brain networks during task performance in multi-subject fMRI data. By identifying recurring and interpretable patterns of brain activity, AA enables researchers to study how the brain transitions among functional states, supports diverse cognitive operations, and adapts to task demands on a moment-to-moment basis.
+
+\section*{Acknowledgments}
+
+\section*{Author Contributions}
+
+
+\section*{Author Information}
+
+
+\bibliography{creativity}
+\bibliographystyle{Science}
+
+\clearpage
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
