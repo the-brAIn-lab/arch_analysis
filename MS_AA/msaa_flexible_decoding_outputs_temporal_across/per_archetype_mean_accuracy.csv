@@ -1,0 +1,16 @@
+archetype,mean_accuracy,condition,K
+1,0.010833333333333334,across_all_subjects,5
+2,0.010416666666666668,across_all_subjects,5
+0,0.009833333333333335,across_all_subjects,5
+3,0.00875,across_all_subjects,5
+4,0.00775,across_all_subjects,5
+2,0.012583333333333332,across_all_subjects,10
+4,0.009916666666666667,across_all_subjects,10
+0,0.009583333333333334,across_all_subjects,10
+5,0.00925,across_all_subjects,10
+3,0.009000000000000001,across_all_subjects,10
+6,0.0085,across_all_subjects,10
+1,0.00825,across_all_subjects,10
+7,0.007000000000000001,across_all_subjects,10
+9,0.004833333333333334,across_all_subjects,10
+8,0.00375,across_all_subjects,10
